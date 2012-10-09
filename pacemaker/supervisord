@@ -1,0 +1,249 @@
+#!/bin/sh
+#
+# Resource script for supervisord daemon
+#
+# Description:  Manages supervisord daemon as an OCF resource in
+#               an High Availability setup.
+#
+# Supervisor OCF script's Author: Marcin M. Jessa
+# License: GNU General Public License (GPL)
+#
+#
+#	usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}
+#
+#	The "start" arg starts Supervisor.
+#
+#	The "stop" arg stops it.
+#
+# OCF parameters:
+# OCF_RESKEY_binpath
+# OCF_RESKEY_conffile
+# OCF_RESKEY_extraconf
+#
+# Note:This RA requires that the supervisord config files has a "pidfile"
+# entry so that it is able to act on the correct process
+##########################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/supervisor}
+. ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
+
+USAGE="Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}";
+
+##########################################################################
+
+usage()
+{
+	echo $USAGE >&2
+}
+
+meta_data()
+{
+cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="supervisord">
+<version>1.0</version>
+<longdesc lang="en">
+This script manages supervisor daemon
+</longdesc>
+<shortdesc lang="en">Manages an supervisor daemon</shortdesc>
+
+<parameters>
+
+<parameter name="binpath">
+<longdesc lang="en">
+The supervisor binary path.
+For example, "/usr/bin/supervisord"
+</longdesc>
+<shortdesc lang="en">Full path to the supervisor binary</shortdesc>
+<content type="string" default="/usr/bin/supervisord"/>
+</parameter>
+
+<parameter name="conffile">
+<longdesc lang="en">
+The Supervisor daemon configuration file name with full path.
+For example, "/etc/supervisord.conf"
+</longdesc>
+<shortdesc lang="en">Configuration file name with full path</shortdesc>
+<content type="string" default="/etc/supervisord.conf" />
+</parameter>
+
+<parameter name="extraconf">
+<longdesc lang="en">
+Extra command line arguments to pass to Supervisor.
+For example, "-f /etc/supervisord.conf"
+</longdesc>
+<shortdesc lang="en">Extra command line arguments for supervisord</shortdesc>
+<content type="string" default="" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20s"/>
+<action name="stop" timeout="20s"/>
+<action name="monitor" depth="0" timeout="20s" interval="60s" />
+<action name="validate-all" timeout="20s"/>
+<action name="meta-data"  timeout="5s"/>
+</actions>
+</resource-agent>
+END
+exit $OCF_SUCCESS
+}
+
+get_pid_and_conf_file()
+{
+	if [ -n "$OCF_RESKEY_conffile" ]; then
+		CONF_FILE=$OCF_RESKEY_conffile
+	else
+		CONF_FILE="/etc/supervisord.conf"
+	fi
+
+	PIDFILE="`grep -v \"#\" ${CONF_FILE} | grep \"pidfile\" | sed 's/^[ \t]*pidfile[ \t]*//'`"
+	if [ "${PIDFILE}" = '' ]; then
+		PIDFILE="/var/run/${OCF_RESOURCE_INSTANCE}.pid"
+	fi
+}
+
+supervisord_status()
+{
+	if [ -n "$PIDFILE" -a -f "$PIDFILE" ]; then
+		# supervisor is probably running
+		PID=`cat $PIDFILE`
+		if [ -n "$PID" ]; then
+			if ps -p $PID | grep supervisord >/dev/null ; then
+				ocf_log info "supervisord daemon running"
+				return $OCF_SUCCESS
+			else
+				ocf_log info "The supervisor daemon is not running but pid file exists"
+				return $OCF_NOT_RUNNING
+			fi
+		else
+			ocf_log err "PID file empty!"
+			return $OCF_ERR_GENERIC
+		fi
+	fi
+
+	# supervisor is not running
+	ocf_log info "The supervisord daemon is not running"
+	return $OCF_NOT_RUNNING
+}
+
+supervisord_start()
+{
+	# if supervisord is running return success
+	supervisord_status
+	retVal=$?
+	if [ $retVal -eq $OCF_SUCCESS ]; then
+		exit $OCF_SUCCESS
+	elif [ $retVal -ne $OCF_NOT_RUNNING ]; then
+		ocf_log err "Error. Unknown status."
+		exit $OCF_ERR_GENERIC
+	fi
+
+	if [ -n "$OCF_RESKEY_binpath" ]; then
+		COMMAND="$OCF_RESKEY_binpath"
+	else
+		COMMAND="/usr/bin/supervisord"
+	fi
+
+	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE;
+	if [ $? -ne 0 ]; then
+		ocf_log err "Error. The supervisord daemon returned error $?."
+		exit $OCF_ERR_GENERIC
+	fi
+
+	ocf_log info "Started supervisord daemon."
+	exit $OCF_SUCCESS
+}
+
+
+supervisord_stop()
+{
+	if supervisord_status ; then
+		PID=`cat $PIDFILE`
+		if [ -n "$PID" ] ; then
+			kill $PID
+			if [ $? -ne 0 ]; then
+				kill -SIGKILL $PID
+				if [ $? -ne 0 ]; then
+					ocf_log err "Error. Could not stop supervisord daemon."
+					return $OCF_ERR_GENERIC
+				fi
+			fi
+			rm $PIDFILE 2>/dev/null
+		fi
+	fi
+	ocf_log info "Stopped supervisord daemon."
+	exit $OCF_SUCCESS
+}
+
+supervisord_monitor()
+{
+	supervisord_status
+}
+
+supervisord_validate_all()
+{
+	if [ -n "$OCF_RESKEY_binpath" -a ! -x "$OCF_RESKEY_binpath" ]; then
+		ocf_log err "Binary path $OCF_RESKEY_binpath does not exist."
+		exit $OCF_ERR_ARGS
+	fi
+	if [ -n "$OCF_RESKEY_conffile" -a ! -f "$OCF_RESKEY_conffile" ]; then
+		ocf_log err "Config file $OCF_RESKEY_conffile does not exist."
+		exit $OCF_ERR_ARGS
+	fi
+
+	if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
+		:
+	else
+		ocf_log err "Error. \"pidfile\" entry required in the supervisord config file by supervisord OCF RA."
+		return $OCF_ERR_GENERIC
+	fi
+
+	return $OCF_SUCCESS
+}
+
+
+#
+# Main
+#
+
+if [ $# -ne 1 ]; then
+	usage
+	exit $OCF_ERR_ARGS
+fi
+
+case $1 in
+	start)	get_pid_and_conf_file
+		supervisord_start
+		;;
+
+	stop)	get_pid_and_conf_file
+		supervisord_stop
+		;;
+
+	status)	get_pid_and_conf_file
+		supervisord_status
+		;;
+
+	monitor)get_pid_and_conf_file
+		supervisord_monitor
+		;;
+
+	validate-all)	get_pid_and_conf_file
+			supervisord_validate_all
+			;;
+
+	meta-data)	meta_data
+			;;
+
+	usage)	usage
+		exit $OCF_SUCCESS
+		;;
+
+	*)	usage
+		exit $OCF_ERR_UNIMPLEMENTED
+		;;
+esac
