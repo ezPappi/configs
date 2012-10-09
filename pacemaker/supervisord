@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Resource script for supervisord daemon
+# Resource script for the supervisor daemon
 #
-# Description:  Manages supervisord daemon as an OCF resource in
+# Description:  Manages the supervisor daemon as an OCF resource in
 #               an High Availability setup.
 #
 # Supervisor OCF script's Author: Marcin M. Jessa
@@ -25,7 +25,7 @@
 ##########################################################################
 # Initialization:
 
-: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/supervisor}
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat/supervisord}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
 
 USAGE="Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}";
