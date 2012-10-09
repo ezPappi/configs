@@ -20,7 +20,7 @@
 # OCF_RESKEY_conffile
 # OCF_RESKEY_extraconf
 #
-# Note:This RA requires that the haproxy config files has a "pidfile"
+# Note:This RA requires that the supervisord config files has a "pidfile"
 # entry so that it is able to act on the correct process
 ##########################################################################
 # Initialization:
@@ -74,7 +74,7 @@ For example, "/etc/supervisord.conf"
 Extra command line arguments to pass to Supervisor.
 For example, "-f /etc/supervisord.conf"
 </longdesc>
-<shortdesc lang="en">Extra command line arguments for haproxy</shortdesc>
+<shortdesc lang="en">Extra command line arguments for supervisord</shortdesc>
 <content type="string" default="" />
 </parameter>
 
@@ -106,17 +106,17 @@ get_pid_and_conf_file()
 	fi
 }
 
-haproxy_status()
+supervisord_status()
 {
 	if [ -n "$PIDFILE" -a -f "$PIDFILE" ]; then
-		# haproxy is probably running
+		# supervisor is probably running
 		PID=`cat $PIDFILE`
 		if [ -n "$PID" ]; then
-			if ps -p $PID | grep haproxy >/dev/null ; then
-				ocf_log info "haproxy daemon running"
+			if ps -p $PID | grep supervisord >/dev/null ; then
+				ocf_log info "supervisord daemon running"
 				return $OCF_SUCCESS
 			else
-				ocf_log info "haproxy daemon is not running but pid file exists"
+				ocf_log info "The supervisor daemon is not running but pid file exists"
 				return $OCF_NOT_RUNNING
 			fi
 		else
@@ -125,15 +125,15 @@ haproxy_status()
 		fi
 	fi
 
-	# haproxy is not running
-	ocf_log info "haproxy daemon is not running"
+	# supervisor is not running
+	ocf_log info "The supervisord daemon is not running"
 	return $OCF_NOT_RUNNING
 }
 
-haproxy_start()
+supervisord_start()
 {
-	# if haproxy is running return success
-	haproxy_status
+	# if supervisord is running return success
+	supervisord_status
 	retVal=$?
 	if [ $retVal -eq $OCF_SUCCESS ]; then
 		exit $OCF_SUCCESS
@@ -145,46 +145,46 @@ haproxy_start()
 	if [ -n "$OCF_RESKEY_binpath" ]; then
 		COMMAND="$OCF_RESKEY_binpath"
 	else
-		COMMAND="/usr/sbin/haproxy"
+		COMMAND="/usr/bin/supervisord"
 	fi
 
 	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE;
 	if [ $? -ne 0 ]; then
-		ocf_log err "Error. haproxy daemon returned error $?."
+		ocf_log err "Error. The supervisord daemon returned error $?."
 		exit $OCF_ERR_GENERIC
 	fi
 
-	ocf_log info "Started haproxy daemon."
+	ocf_log info "Started supervisord daemon."
 	exit $OCF_SUCCESS
 }
 
 
-haproxy_stop()
+supervisord_stop()
 {
-	if haproxy_status ; then
+	if supervisord_status ; then
 		PID=`cat $PIDFILE`
 		if [ -n "$PID" ] ; then
 			kill $PID
 			if [ $? -ne 0 ]; then
 				kill -SIGKILL $PID
 				if [ $? -ne 0 ]; then
-					ocf_log err "Error. Could not stop haproxy daemon."
+					ocf_log err "Error. Could not stop supervisord daemon."
 					return $OCF_ERR_GENERIC
 				fi
 			fi
 			rm $PIDFILE 2>/dev/null
 		fi
 	fi
-	ocf_log info "Stopped haproxy daemon."
+	ocf_log info "Stopped supervisord daemon."
 	exit $OCF_SUCCESS
 }
 
-haproxy_monitor()
+supervisord_monitor()
 {
-	haproxy_status
+	supervisord_status
 }
 
-haproxy_validate_all()
+supervisord_validate_all()
 {
 	if [ -n "$OCF_RESKEY_binpath" -a ! -x "$OCF_RESKEY_binpath" ]; then
 		ocf_log err "Binary path $OCF_RESKEY_binpath does not exist."
@@ -198,7 +198,7 @@ haproxy_validate_all()
 	if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
 		:
 	else
-		ocf_log err "Error. \"pidfile\" entry required in the haproxy config file by haproxy OCF RA."
+		ocf_log err "Error. \"pidfile\" entry required in the supervisord config file by supervisord OCF RA."
 		return $OCF_ERR_GENERIC
 	fi
 
@@ -217,23 +217,23 @@ fi
 
 case $1 in
 	start)	get_pid_and_conf_file
-		haproxy_start
+		supervisord_start
 		;;
 
 	stop)	get_pid_and_conf_file
-		haproxy_stop
+		supervisord_stop
 		;;
 
 	status)	get_pid_and_conf_file
-		haproxy_status
+		supervisord_status
 		;;
 
 	monitor)get_pid_and_conf_file
-		haproxy_monitor
+		supervisord_monitor
 		;;
 
 	validate-all)	get_pid_and_conf_file
-			haproxy_validate_all
+			supervisord_validate_all
 			;;
 
 	meta-data)	meta_data
