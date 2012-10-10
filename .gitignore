@@ -1,14 +1,16 @@
- obj
- bin
- _ReSharper.*
- .DS_Store 
- .localized
+obj
+bin
+_ReSharper.*
+.DS_Store 
+.localized
 *.csproj.user
- *.resharper.user
- *.resharper
- *.suo
- *.cache
- *~
- *.swp
- /Build
- NDependOut
+*.resharper.user
+*.resharper
+*.suo
+*.cache
+*~
+*.swp
+tags
+*~
+/Build
+NDependOut
