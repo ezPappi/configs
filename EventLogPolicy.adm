@@ -1,0 +1,209 @@
+#if version >= 3
+
+CLASS MACHINE
+
+CATEGORY !!System
+    CATEGORY !!EventViewer
+	#if version >= 4
+	EXPLAIN !!EventViewer_Help
+	#endif
+
+        POLICY !!AutobackupSecLog
+		#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AutobackupSecLogHelp
+       		KEYNAME "SYSTEM\CurrentControlSet\Services\EventLog\Security"
+	    	VALUENAME "AutoBackupLogFiles"
+	    	VALUEON 	NUMERIC   1
+	    	VALUEOFF	NUMERIC   0
+        END POLICY
+    
+        POLICY !!AutobackupAppLog
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AutobackupAppLogHelp
+       		KEYNAME "SYSTEM\CurrentControlSet\Services\EventLog\Application"
+	    	VALUENAME "AutoBackupLogFiles"
+	    	VALUEON 	NUMERIC   1
+	    	VALUEOFF	NUMERIC   0
+        END POLICY
+    
+        POLICY !!AutobackupSysLog
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AutobackupSysLogHelp
+       		KEYNAME "SYSTEM\CurrentControlSet\Services\EventLog\System"
+	    	VALUENAME "AutoBackupLogFiles"
+	    	VALUEON 	NUMERIC   1
+	    	VALUEOFF	NUMERIC   0
+        END POLICY
+
+        POLICY !!AutobackupNtFrsLog
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AutobackupNtFrsLogHelp
+       		KEYNAME "SYSTEM\CurrentControlSet\Services\EventLog\File Replication Service"
+	    	VALUENAME "AutoBackupLogFiles"
+	    	VALUEON 	NUMERIC   1
+	    	VALUEOFF	NUMERIC   0
+        END POLICY
+
+        POLICY !!AutobackupDNSLog
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AutobackupDNSLogHelp
+       		KEYNAME "SYSTEM\CurrentControlSet\Services\EventLog\DNS Server"
+	    	VALUENAME "AutoBackupLogFiles"
+	    	VALUEON 	NUMERIC   1
+	    	VALUEOFF	NUMERIC   0
+        END POLICY
+
+        POLICY !!AutobackupNTDSLog
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AutobackupNTDSLogHelp
+       		KEYNAME "SYSTEM\CurrentControlSet\Services\EventLog\Directory Service"
+	    	VALUENAME "AutoBackupLogFiles"
+	    	VALUEON 	NUMERIC   1
+	    	VALUEOFF	NUMERIC   0
+        END POLICY
+
+        POLICY !!SecLogPath
+		#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!SecLogPathHelp
+       		KEYNAME "System\CurrentControlSet\Services\EventLog"
+		PART "Path"
+			EDITTEXT
+		    	VALUENAME "Security folder"
+                    	DEFAULT "D:\Log\EventLog\Security\SecEvent.evt"
+	                REQUIRED
+		END PART
+        END POLICY
+    
+        POLICY !!AppLogPath
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!AppLogPathHelp
+       		KEYNAME "System\CurrentControlSet\Services\EventLog"
+		PART "Path"
+			EDITTEXT
+		    	VALUENAME "Application folder"
+                    	DEFAULT "D:\Log\EventLog\Application\AppEvent.evt"
+	                REQUIRED
+		END PART
+        END POLICY
+    
+        POLICY !!SysLogPath
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!SysLogPathHelp
+       		KEYNAME "System\CurrentControlSet\Services\EventLog"
+		PART "Path"
+			EDITTEXT
+		    	VALUENAME "System folder"
+                    	DEFAULT "D:\Log\EventLog\System\SysEvent.evt"
+	                REQUIRED
+		END PART
+        END POLICY
+
+        POLICY !!NtFrsLogPath
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!NtFrsLogPathHelp
+       		KEYNAME "System\CurrentControlSet\Services\EventLog"
+		PART "Path"
+			EDITTEXT
+		    	VALUENAME "System folder"
+                    	DEFAULT "D:\Log\EventLog\System\SysEvent.evt"
+	                REQUIRED
+		END PART
+        END POLICY
+
+        POLICY !!DNSLogPath
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!DNSLogPathHelp
+       		KEYNAME "System\CurrentControlSet\Services\EventLog"
+		PART "Path"
+			EDITTEXT
+		    	VALUENAME "System folder"
+                    	DEFAULT "D:\Log\EventLog\System\SysEvent.evt"
+	                REQUIRED
+		END PART
+        END POLICY
+
+        POLICY !!NTDSLogPath
+	    	#if version >= 4
+		SUPPORTED !!SUPPORTED_Win2k
+		#endif
+
+       		EXPLAIN !!NTDSLogPathHelp
+       		KEYNAME "System\CurrentControlSet\Services\EventLog"
+		PART "Path"
+			EDITTEXT
+		    	VALUENAME "System folder"
+                    	DEFAULT "D:\Log\EventLog\System\SysEvent.evt"
+	                REQUIRED
+		END PART
+        END POLICY
+
+    END CATEGORY ; Event Viewer
+
+END CATEGORY ;; System
+
+#endif
+
+
+[strings]
+System="System"
+EventViewer="Event Viewer"
+EventViewer_Help="Event Viewer specific settings"
+AutobackupSecLog="Automatically clear a full security event log and back up the log file"
+AutobackupSecLogHelp="Using this entry causes the Event Log service to automatically clear a full event log and to back up the log file. On computers with the 'CrashOnAuditFail' policy turned on, the computer continues to log events (instead of hanging because of an audit failure) if the current log file can be backed up automatically. By default, event logs are stored in the %SystemRoot%\System32\Config folder. If you enable this setting, a full log file is automatically backed up in the %SystemRoot%\System32\Config folder, the log file is cleared, and event logging resumes."
+AutobackupAppLog="Automatically clear a full application event log and back up the log file"
+AutobackupAppLogHelp="Using this entry causes the Event Log service to automatically clear a full event log and to back up the log file. On computers with the 'CrashOnAuditFail' policy turned on, the computer continues to log events (instead of hanging because of an audit failure) if the current log file can be backed up automatically. By default, event logs are stored in the %SystemRoot%\System32\Config folder. If you enable this setting, a full log file is automatically backed up in the %SystemRoot%\System32\Config folder, the log file is cleared, and event logging resumes."
+AutobackupSysLog="Automatically clear a full system event log and back up the log file"
+AutobackupSysLogHelp="Using this entry causes the Event Log service to automatically clear a full event log and to back up the log file. On computers with the 'CrashOnAuditFail' policy turned on, the computer continues to log events (instead of hanging because of an audit failure) if the current log file can be backed up automatically. By default, event logs are stored in the %SystemRoot%\System32\Config folder. If you enable this setting, a full log file is automatically backed up in the %SystemRoot%\System32\Config folder, the log file is cleared, and event logging resumes."
+AutobackupNtFrsLog="Automatically clear a full File Replication Service event log and back up the log file"
+AutobackupNtFrsLogHelp="Using this entry causes the Event Log service to automatically clear a full event log and to back up the log file. On computers with the 'CrashOnAuditFail' policy turned on, the computer continues to log events (instead of hanging because of an audit failure) if the current log file can be backed up automatically. By default, event logs are stored in the %SystemRoot%\System32\Config folder. If you enable this setting, a full log file is automatically backed up in the %SystemRoot%\System32\Config folder, the log file is cleared, and event logging resumes."
+AutobackupDNSLog="Automatically clear a full DNS Server event log and back up the log file"
+AutobackupDNSLogHelp="Using this entry causes the Event Log service to automatically clear a full event log and to back up the log file. On computers with the 'CrashOnAuditFail' policy turned on, the computer continues to log events (instead of hanging because of an audit failure) if the current log file can be backed up automatically. By default, event logs are stored in the %SystemRoot%\System32\Config folder. If you enable this setting, a full log file is automatically backed up in the %SystemRoot%\System32\Config folder, the log file is cleared, and event logging resumes."
+AutobackupNTDSLog="Automatically clear a full Directory Service event log and back up the log file"
+AutobackupNTDSLogHelp="Using this entry causes the Event Log service to automatically clear a full event log and to back up the log file. On computers with the 'CrashOnAuditFail' policy turned on, the computer continues to log events (instead of hanging because of an audit failure) if the current log file can be backed up automatically. By default, event logs are stored in the %SystemRoot%\System32\Config folder. If you enable this setting, a full log file is automatically backed up in the %SystemRoot%\System32\Config folder, the log file is cleared, and event logging resumes."
+SUPPORTED_Win2k="At least Microsoft Windows 2000"
+SecLogPath="Set the security event log file path"
+SecLogPathHelp="Using this entry causes the Event Log service to save the event logs in a specific folder. By default, event logs are maintained in the %SystemRoot%\System32\Config folder. If you enable this setting, the automatically backup policy will also change the path, the policy require a system restart to apply."
+AppLogPath="Set the application event log file path"
+AppLogPathHelp="Using this entry causes the Event Log service to save the event logs in a specific folder. By default, event logs are maintained in the %SystemRoot%\System32\Config folder. If you enable this setting, the automatically backup policy will also change the path, the policy require a system restart to apply."
+SysLogPath="Set the system event log file path"
+SysLogPathHelp="Using this entry causes the Event Log service to save the event logs in a specific folder. By default, event logs are maintained in the %SystemRoot%\System32\Config folder. If you enable this setting, the automatically backup policy will also change the path, the policy require a system restart to apply."
+NtFrsLogPath="Set the File Replication Service event log file path"
+NtFrsLogPathHelp="Using this entry causes the Event Log service to save the event logs in a specific folder. By default, event logs are maintained in the %SystemRoot%\System32\Config folder. If you enable this setting, the automatically backup policy will also change the path, the policy require a system restart to apply."
+DNSLogPath="Set the DNS Server event log file path"
+DNSLogPathHelp="Using this entry causes the Event Log service to save the event logs in a specific folder. By default, event logs are maintained in the %SystemRoot%\System32\Config folder. If you enable this setting, the automatically backup policy will also change the path, the policy require a system restart to apply."
+NTDSLogPath="Set the Directory Service log file path"
+NTDSLogPathHelp="Using this entry causes the Event Log service to save the event logs in a specific folder. By default, event logs are maintained in the %SystemRoot%\System32\Config folder. If you enable this setting, the automatically backup policy will also change the path, the policy require a system restart to apply."
+
