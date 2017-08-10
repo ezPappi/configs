@@ -42,8 +42,6 @@ alias mount='sudo mount'
 alias s='sudo'
 alias cls='clear'
 
-[ $DISPLAY ] && export VISUAL="nano" || export EDITOR="nano"
-
 ANDROID_PATH="$HOME/android-sdk-mac_x86/tools:$HOME/android-sdk-mac_x86/platform-tools"
 GOLANG_PATH="/usr/local/opt/go/libexec/bin"
 HOME_BIN_PATH="$HOME/bin"
