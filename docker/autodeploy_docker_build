@@ -1,0 +1,12 @@
+DEPLOYHOST=user@hostname
+SHORTHASH=$(git rev-parse --short HEAD)
+yes "email@address.tld" | docker login -p your_password -u username hostname.tld
+mvn -gs settings.xml -f pom.xml clean install
+docker build --tag hostname.tld/container_group/container_name:$SHORTHASH -f container_name-docker/Dockerfile .
+docker push hostname.tld/container_group/container_name:$SHORTHASH
+#ssh $DEPLOYHOST "/usr/local/bin/docker-compose -f /home/deploy/docker-compose.yml stop container_name || true"
+#ssh $DEPLOYHOST "/usr/local/bin/docker-compose -f /home/deploy/docker-compose.yml rm -f container_name"
+#ssh $DEPLOYHOST "/usr/local/bin/docker-compose -f /home/deploy/docker-compose.yml up -d container_name"
+ssh $DEPLOYHOST "docker stop container_name || true && docker rm -f container_name || true"
+ssh $DEPLOYHOST "docker pull hostname.tld/container_group/container_name:$SHORTHASH"
+ssh $DEPLOYHOST "docker run -e ENV=dev -p 80:8080 --restart=always -v /data/container_name/logs:/data/container_name/logs -v /data/container_name/images:/data/container_name/images -d --name=container_name --network='container_name_deploy_backend' hostname.tld/container_group/container_name:$SHORTHASH"
